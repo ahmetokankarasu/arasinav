@@ -1,0 +1,762 @@
+---
+title: "İstanbul İçin Deprem Senaryosu Çalışması"
+author: "Ahmet Okan Karasu"
+date: "`r Sys.Date()`"
+output: html_document
+---
+[^1]: 19080760, [Github Repo](https://github.com/ahmetokankarasu/arasinav)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+BÖLÜM 1 GİRİŞ
+
+İstanbul'daki ilçelerde 7.5 Mw büyüklüğünde gece olacak deprem senaryosuna göre yapılan analizlerin sonuçlarını içeren veri setini kullandık.
+Veri seti İBB Açık Veri Portalı Sitesinden alındı. 
+Verinin alındığı sitenin linki : (https://data.ibb.gov.tr/dataset/deprem-senaryosu-analiz-sonuclari/resource/9c3ac492-de4b-4245-b418-7ad3df67a193)
+
+  Soru - Yorum
+ Böyle bir senaryonun olma ihtimali nasıl etki yaratabilir ?
+ Bu senaryo ihtimalinde deprem olursa ne gibi aksiyon izlenebilir ?
+  Senaryonun gerçekleşme ihtimaline karşı nasıl tedbir alınabilir ?
+
+
+ Analizin amacı : 7.5 Mw büyüklüğünde gece olacak deprem senaryosunun İstanbul'daki ilçeler baz
+ alınarak depremin İstanbul'a etkisi
+
+Veri Setinde yer alan gözlemler - değişkenler :
+
+- Değişkenler
+
+ 'data.frame':	958 obs. of  14 variables:
+   $ ilce_adi                    : chr  "ADALAR" "ADALAR" "ADALAR" "ADALAR" ...
+   $ mahalle_adi                 : chr  "BURGAZADA" "HEYBELIADA" "KINALIADA" "MADEN" ...
+ $ cok_agir_hasarli_bina_sayisi: int  54 101 53 104 101 1 2 1 1 1 ...
+ $ agir_hasarli_bina_sayisi    : int  99 175 97 192 180 3 13 6 6 5 ...
+ $ orta_hasarli_bina_sayisi    : int  256 423 287 483 445 21 108 51 49 23 ...
+ $ hafif_hasarli_bina_sayisi   : int  241 393 302 484 422 57 371 199 129 65 ...
+ $ can_kaybi_sayisi            : int  8 25 5 22 16 0 0 0 0 0 ...
+ $ agir_yarali_sayisi          : int  6 21 3 18 13 0 0 0 0 0 ...
+ $ hastanede_tedavi_sayisi     : int  24 66 15 64 48 1 8 2 2 0 ...
+ $ hafif_yarali_sayisi         : int  42 113 27 113 83 3 26 10 8 0 ...
+ $ dogalgaz_boru_hasari        : int  0 1 0 1 1 0 1 0 0 0 ...
+ $ icme_suyu_boru_hasari       : int  0 1 1 1 2 0 1 1 0 0 ...
+ $ atik_su_boru_hasari         : int  1 2 1 2 2 0 1 1 0 0 ...
+ $ gecici_barinma              : int  398 763 420 847 687 89 659 273 209 26 ...
+
+- Veri setinde 958 tane gözlenen değer ve 14 tane değişken olduğu görülmektedir.
+
+
+
+
+
+BÖLÜM 2 VERİ
+
+Kullanılan veri setinin istatistiksel özeti :
+
+ ilce_adi         mahalle_adi        cok_agir_hasarli_bina_sayisi agir_hasarli_bina_sayisi
+ Length:958         Length:958         Min.   :  0.00               Min.   :  0.00          
+ Class :character   Class :character   1st Qu.:  1.00               1st Qu.:  6.00          
+ Mode  :character   Mode  :character   Median :  5.00               Median : 20.00          
+ Mean   : 14.09               Mean   : 35.83          
+ 3rd Qu.: 17.00               3rd Qu.: 48.00          
+ Max.   :201.00               Max.   :313.00          
+ orta_hasarli_bina_sayisi hafif_hasarli_bina_sayisi can_kaybi_sayisi agir_yarali_sayisi
+ Min.   :   0.0           Min.   :   2.0            Min.   :  0.00   Min.   :  0.000   
+ 1st Qu.:  39.0           1st Qu.: 112.2            1st Qu.:  0.00   1st Qu.:  0.000   
+ Median : 100.5           Median : 251.5            Median :  3.00   Median :  1.000   
+ Mean   : 152.9           Mean   : 314.6            Mean   : 14.77   Mean   :  8.445   
+ 3rd Qu.: 214.8           3rd Qu.: 440.5            3rd Qu.: 13.00   3rd Qu.:  8.000   
+ Max.   :1565.0           Max.   :2452.0            Max.   :230.00   Max.   :122.000   
+ hastanede_tedavi_sayisi hafif_yarali_sayisi dogalgaz_boru_hasari icme_suyu_boru_hasari
+ Min.   :  0.00          Min.   :   0.00     Min.   :0.0000       Min.   :0.0000       
+ 1st Qu.:  1.00          1st Qu.:   4.00     1st Qu.:0.0000       1st Qu.:0.0000       
+ Median : 11.00          Median :  26.00     Median :0.0000       Median :0.0000       
+ Mean   : 41.37          Mean   :  78.54     Mean   :0.3706       Mean   :0.4812       
+ 3rd Qu.: 39.00          3rd Qu.:  78.75     3rd Qu.:1.0000       3rd Qu.:1.0000       
+ Max.   :592.00          Max.   :1028.00     Max.   :4.0000       Max.   :7.0000       
+ atik_su_boru_hasari gecici_barinma   
+ Min.   : 0.000      Min.   :   0.00  
+ 1st Qu.: 0.000      1st Qu.:  97.25  
+ Median : 1.000      Median : 413.50  
+ Mean   : 1.088      Mean   : 872.37  
+ 3rd Qu.: 1.000      3rd Qu.:1130.50  
+ Max.   :14.000      Max.   :9075.00  
+
+Değişkenler hakkında bilgi 
+
+
+ilce_adi : Senaryoya göre depremden etkilenecek ilçenin ismini içerir.
+
+mahalle_adi : Senaryoya göre depremden etkilenecek mahallenin ismini içerir.
+
+cok_agir_hasarli_bina_sayisi : Senaryoya göre depremden etkilenecek çok ağır hasarlı bina sayısını içerir.
+
+agir_hasarli_bina_sayisi : Senaryoya göre depremden etkilenecek ağır hasarlı bina sayısını içerir.
+
+
+orta_hasarli_bina_sayisi : Senaryoya göre depremden etkilenecek orta hasarlı bina sayısını içerir.
+
+hafif_hasarli_bina_sayisi : Senaryoya göre depremden etkilenecek hafif hasarlı bina sayısını içerir.
+
+can_kaybi_sayisi : Senaryoya göre depremde oluşacak can kaybı sayısını içerir.
+
+agir_yarali_sayisi : Senaryoya göre depremde oluşacak ağır yaralı sayısını içerir.
+
+hastanede_tedavi_sayisi : Senaryoya göre depremden sonra hastanede tedavi sayısını içerir.
+
+hafif_yarali_sayisi : Senaryoya göre depremde oluşacak hafif yaralı sayısını içerir.
+
+dogalgaz_boru_hasari :  Senaryoya göre depremde hasar gören doğalgaz boru hattı sayısını içerir.
+ 
+icme_suyu_boru_hasari : Senaryoya göre depremde hasar gören içme suyu boru hattı sayısını içerir.
+
+atik_su_boru_hasari : Senaryoya göre depremde hasar gören atık su boru hattı sayısını içerir.
+ 
+gecici_barinma : Senaryoya göre deprem sonrasında oluşacak geçici barınma sayısını içerir.
+ 
+3. BÖLÜM YÖNTEM VERİ ANALİZİ
+
+
+- İstanbul'daki ilçelerde 7.5 Mw büyüklüğünde gece olacak deprem senaryosuna
+göre yapılan analizlerin sonuçlarını içeren veri setini incelediğimizde tanımlayıcı analiz arasından yöntemler seçildi.
+- Tanımlayıcı Analiz arasından merkezi eğilim ölçüsü teknikleri olarak veri seti üzerinde analizler yapıldı. 
+- Merkezi eğilim ölçüsü (mod,medyan,ortalama) = tüm veri setindeki değerleri tek noktada temsil eder.
+
+- Kullanılan analiz türü olan tanımlayıcı analiz, verilerinizin dağılımı hakkında bir sonuca varmanızı sağlar, hataları ve aykırı değerleri tespit etmenize yardımcı olur ve değişkenler arasındaki örüntüleri görmenizi sağlayarak sizi gelecekteki istatistiksel analizlere hazırlar.
+
+- Analiz türü içerisinde kullanılan teknikler (ortalama,mod,medyan) 
+
+Veri Setinin ortalaması veri kümesindeki tüm sayıları toplamak ve kümedeki değer sayısına bölmekle bulunur. Medyan, veri kümesi küçükten büyüğe sıralandığında ortadaki değerdir. Mod veri kümesinde en fazla görülen sayıdır.
+
+
+- Yapılan çalışmada veri setiminzde bulunan değişkenlerin her birinin tanımlayıcı analize uygun olan teknikler (ortalama,mod,medyan) kullanarak (ortalama,mod,medyan) değerleri elde edildi.
+
+- Her bir değişkenin elde edilen değerleri ve ham değerleri grafik üzerinde gösterilmiştir.  
+
+BÖLÜM 4 SONUÇ 
+
+- Yapılan analiz sonucunda veri setinde bulunan her bir değişkenin tanımlayıcı analizin teknikleri (ortalama,mod,medyan) kullanılarak elde edilen analiz tekniklerinin  değerlerin grafik gösterimi yapılarak araştuırmacıların 7.5 Mw büyüklüğünde gece olacak deprem senaryosuna göre yapılması gerekenler ile ilgili yapılacak çalışmalarda döküman olarak bulunabilir ve elde edilen analiz sonuçarına göre analiz yapılabilir.   
+
+- Her bir değişken için oluşturulan grafikler incelenerek bir ön düşünce oluşmuştur ve referans oluşturmuştur.
+
+Çalışmada Kullanılan Türetilmiş R Kodları
+
+ # 'tidyverse' ve 'ggplot2' kütüphanesi kullanıldı.
+install.packages("tidyverse")
+library(tidyverse)
+
+install.packages("ggplot2")
+library(ggplot2)
+
+# Seçilen veri setini programa aktardık.
+
+
+deprem_veri_seti <- read.csv("deprem_veri_seti.csv")
+
+deprem_veri_seti
+
+# Veri setinde kullanılacak değişkenler tanımladık.
+str(deprem_veri_seti)
+# 'data.frame':	958 obs. of  14 variables:
+ #  $ ilce_adi                    : chr  "ADALAR" "ADALAR" "ADALAR" "ADALAR" ...
+# $ mahalle_adi                 : chr  "BURGAZADA" "HEYBELIADA" "KINALIADA" "MADEN" ...
+# $ cok_agir_hasarli_bina_sayisi: int  54 101 53 104 101 1 2 1 1 1 ...
+# $ agir_hasarli_bina_sayisi    : int  99 175 97 192 180 3 13 6 6 5 ...
+# $ orta_hasarli_bina_sayisi    : int  256 423 287 483 445 21 108 51 49 23 ...
+# $ hafif_hasarli_bina_sayisi   : int  241 393 302 484 422 57 371 199 129 65 ...
+# $ can_kaybi_sayisi            : int  8 25 5 22 16 0 0 0 0 0 ...
+# $ agir_yarali_sayisi          : int  6 21 3 18 13 0 0 0 0 0 ...
+# $ hastanede_tedavi_sayisi     : int  24 66 15 64 48 1 8 2 2 0 ...
+# $ hafif_yarali_sayisi         : int  42 113 27 113 83 3 26 10 8 0 ...
+# $ dogalgaz_boru_hasari        : int  0 1 0 1 1 0 1 0 0 0 ...
+# $ icme_suyu_boru_hasari       : int  0 1 1 1 2 0 1 1 0 0 ...
+# $ atik_su_boru_hasari         : int  1 2 1 2 2 0 1 1 0 0 ...
+# $ gecici_barinma              : int  398 763 420 847 687 89 659 273 209 26 ...
+
+
+# NOT : Veri Setini incelediğimizde tanımlayıcı analiz arasından teknikler seçildi. 
+
+# Veri setinin istatistiksel özetinden bahsettik.
+
+summary(deprem_veri_seti)
+
+# ilce_adi         mahalle_adi        cok_agir_hasarli_bina_sayisi agir_hasarli_bina_sayisi
+# Length:958         Length:958         Min.   :  0.00               Min.   :  0.00          
+# Class :character   Class :character   1st Qu.:  1.00               1st Qu.:  6.00          
+# Mode  :character   Mode  :character   Median :  5.00               Median : 20.00          
+# Mean   : 14.09               Mean   : 35.83          
+# 3rd Qu.: 17.00               3rd Qu.: 48.00          
+# Max.   :201.00               Max.   :313.00          
+# orta_hasarli_bina_sayisi hafif_hasarli_bina_sayisi can_kaybi_sayisi agir_yarali_sayisi
+# Min.   :   0.0           Min.   :   2.0            Min.   :  0.00   Min.   :  0.000   
+# 1st Qu.:  39.0           1st Qu.: 112.2            1st Qu.:  0.00   1st Qu.:  0.000   
+# Median : 100.5           Median : 251.5            Median :  3.00   Median :  1.000   
+# Mean   : 152.9           Mean   : 314.6            Mean   : 14.77   Mean   :  8.445   
+# 3rd Qu.: 214.8           3rd Qu.: 440.5            3rd Qu.: 13.00   3rd Qu.:  8.000   
+# Max.   :1565.0           Max.   :2452.0            Max.   :230.00   Max.   :122.000   
+# hastanede_tedavi_sayisi hafif_yarali_sayisi dogalgaz_boru_hasari icme_suyu_boru_hasari
+# Min.   :  0.00          Min.   :   0.00     Min.   :0.0000       Min.   :0.0000       
+# 1st Qu.:  1.00          1st Qu.:   4.00     1st Qu.:0.0000       1st Qu.:0.0000       
+# Median : 11.00          Median :  26.00     Median :0.0000       Median :0.0000       
+# Mean   : 41.37          Mean   :  78.54     Mean   :0.3706       Mean   :0.4812       
+# 3rd Qu.: 39.00          3rd Qu.:  78.75     3rd Qu.:1.0000       3rd Qu.:1.0000       
+# Max.   :592.00          Max.   :1028.00     Max.   :4.0000       Max.   :7.0000       
+# atik_su_boru_hasari gecici_barinma   
+# Min.   : 0.000      Min.   :   0.00  
+# 1st Qu.: 0.000      1st Qu.:  97.25  
+# Median : 1.000      Median : 413.50  
+# Mean   : 1.088      Mean   : 872.37  
+# 3rd Qu.: 1.000      3rd Qu.:1130.50  
+# Max.   :14.000      Max.   :9075.00  
+
+# Veri setine ortalama (mean) analizi yaptık.
+
+
+mean_cok_agir_hasarli_bina_sayisi = mean(deprem_veri_seti$cok_agir_hasarli_bina_sayisi)
+mean_agir_hasarli_bina_sayisi= mean(deprem_veri_seti$agir_hasarli_bina_sayisi)
+mean_orta_hasarli_bina_sayisi= mean(deprem_veri_seti$orta_hasarli_bina_sayisi)
+mean_hafif_hasarli_bina_sayisi = mean(deprem_veri_seti$hafif_hasarli_bina_sayisi)
+mean_can_kaybi_sayisi = mean(deprem_veri_seti$can_kaybi_sayisi)
+mean_agir_yarali_sayisi = mean(deprem_veri_seti$agir_yarali_sayisi)
+mean_hastanede_tedavi_sayisi = mean(deprem_veri_seti$hastanede_tedavi_sayisi)
+mean_hafif_yarali_sayisi = mean(deprem_veri_seti$hafif_yarali_sayisi)
+mean_dogalgaz_boru_hasari = mean(deprem_veri_seti$dogalgaz_boru_hasari)
+mean_icme_suyu_boru_hasari= mean(deprem_veri_seti$icme_suyu_boru_hasari)
+mean_atik_su_boru_hasari = mean(deprem_veri_seti$atik_su_boru_hasari)
+mean_gecici_barinma = mean(deprem_veri_seti$gecici_barinma)
+
+# Sütunların ortalama (mean) analizinde elde edilen değerleri veri çerçevesi kullanarak
+# tablo biçiminde gösterdik.
+
+dataframe_ort. <- data.frame (
+  cok_agir_hasarli_bina_sayisi  = c(mean_cok_agir_hasarli_bina_sayisi),
+  agir_hasarli_bina_sayisi = c(mean_agir_hasarli_bina_sayisi),
+  orta_hasarli_bina_sayisi = c(mean_orta_hasarli_bina_sayisi),
+  hafif_hasarli_bina_sayisi = c(mean_hafif_hasarli_bina_sayisi),
+  can_kaybi_sayisi = c(mean_can_kaybi_sayisi),
+  agir_yarali_sayisi = c(mean_agir_yarali_sayisi),
+  hastanede_tedavi_sayisi = c(mean_hastanede_tedavi_sayisi),
+  hafif_yarali_sayisi = c(mean_hafif_yarali_sayisi),
+  dogalgaz_boru_hasari = c(mean_dogalgaz_boru_hasari),
+  icme_suyu_boru_hasari = c(mean_icme_suyu_boru_hasari),
+  atik_su_boru_hasari = c(mean_atik_su_boru_hasari),
+  gecici_barinma = c(mean_gecici_barinma )
+)
+
+# Tablo şeklinde gösterdik.   
+print(dataframe_ort.) 
+
+# Sütunların ortalama değerleri analizi çıktısı
+
+# cok_agir_hasarli_bina_sayisi agir_hasarli_bina_sayisi orta_hasarli_bina_sayisi
+ #                    14.08664                 35.83194                 152.8841
+# hafif_hasarli_bina_sayisi can_kaybi_sayisi agir_yarali_sayisi hastanede_tedavi_sayisi
+  #                314.6138         14.76514           8.444676                 41.3737
+# hafif_yarali_sayisi dogalgaz_boru_hasari icme_suyu_boru_hasari atik_su_boru_hasari gecici_barinma
+   #         78.53549            0.3705637             0.4812109            1.087683       872.3685
+
+
+
+
+# Veri setine mod (mode) analizi yaptık.
+
+# mod (mode) analizinde kullanılacak fonksiyonların kütüphanesini ("modeest")  çağırdık.
+install.packages("modeest")
+library(modeest)
+
+
+mode_cok_agir_hasarli_bina_sayisi = mfv(deprem_veri_seti$cok_agir_hasarli_bina_sayisi)
+mode_agir_hasarli_bina_sayisi= mfv(deprem_veri_seti$agir_hasarli_bina_sayisi)
+mode_orta_hasarli_bina_sayisi= mfv(deprem_veri_seti$orta_hasarli_bina_sayisi)
+mode_hafif_hasarli_bina_sayisi = mfv(deprem_veri_seti$hafif_hasarli_bina_sayisi)
+mode_can_kaybi_sayisi = mfv(deprem_veri_seti$can_kaybi_sayisi)
+mode_agir_yarali_sayisi = mfv(deprem_veri_seti$agir_yarali_sayisi)
+mode_hastanede_tedavi_sayisi = mfv(deprem_veri_seti$hastanede_tedavi_sayisi)
+mode_hafif_yarali_sayisi = mfv(deprem_veri_seti$hafif_yarali_sayisi)
+mode_dogalgaz_boru_hasari = mfv(deprem_veri_seti$dogalgaz_boru_hasari)
+mode_icme_suyu_boru_hasari= mfv(deprem_veri_seti$icme_suyu_boru_hasari)
+mode_atik_su_boru_hasari = mfv(deprem_veri_seti$atik_su_boru_hasari)
+mode_gecici_barinma = mfv(deprem_veri_seti$gecici_barinma)
+
+# Sütunların mod (mode) analizinde elde edilen değerleri veri çerçevesi kullanarak
+# tablo biçiminde gösterdik.
+
+dataframe_mod. <- data.frame (
+  cok_agir_hasarli_bina_sayisi  = c(mode_cok_agir_hasarli_bina_sayisi),
+  agir_hasarli_bina_sayisi = c(mode_agir_hasarli_bina_sayisi),
+  orta_hasarli_bina_sayisi = c(mode_orta_hasarli_bina_sayisi),
+  hafif_hasarli_bina_sayisi = c(mode_hafif_hasarli_bina_sayisi),
+  can_kaybi_sayisi = c(mode_can_kaybi_sayisi),
+  agir_yarali_sayisi = c(mode_agir_yarali_sayisi),
+  hastanede_tedavi_sayisi = c(mode_hastanede_tedavi_sayisi),
+  hafif_yarali_sayisi = c(mode_hafif_yarali_sayisi),
+  dogalgaz_boru_hasari = c(mode_dogalgaz_boru_hasari),
+  icme_suyu_boru_hasari = c(mode_icme_suyu_boru_hasari),
+  atik_su_boru_hasari = c(mode_atik_su_boru_hasari),
+  gecici_barinma = c(mode_gecici_barinma)
+)
+
+# Tablo şeklinde gösterdik.   
+print(dataframe_mod.) 
+# Sütunların mod değerlerinin analizi çıktısı
+
+# cok_agir_hasarli_bina_sayisi agir_hasarli_bina_sayisi orta_hasarli_bina_sayisi
+#                           1                        1                        7
+# hafif_hasarli_bina_sayisi can_kaybi_sayisi agir_yarali_sayisi hastanede_tedavi_sayisi
+#                       63                0                  0                       0
+# hafif_yarali_sayisi dogalgaz_boru_hasari icme_suyu_boru_hasari atik_su_boru_hasari gecici_barinma
+#                   0                    0                     0                   0             10
+
+# Veri setine medyan (median) analizi yaptık.
+median_cok_agir_hasarli_bina_sayisi = median(deprem_veri_seti$cok_agir_hasarli_bina_sayisi)
+median_agir_hasarli_bina_sayisi= median(deprem_veri_seti$agir_hasarli_bina_sayisi)
+median_orta_hasarli_bina_sayisi= median(deprem_veri_seti$orta_hasarli_bina_sayisi)
+median_hafif_hasarli_bina_sayisi = median(deprem_veri_seti$hafif_hasarli_bina_sayisi)
+median_can_kaybi_sayisi = median(deprem_veri_seti$can_kaybi_sayisi)
+median_agir_yarali_sayisi = median(deprem_veri_seti$agir_yarali_sayisi)
+median_hastanede_tedavi_sayisi = median(deprem_veri_seti$hastanede_tedavi_sayisi)
+median_hafif_yarali_sayisi = median(deprem_veri_seti$hafif_yarali_sayisi)
+median_dogalgaz_boru_hasari = median(deprem_veri_seti$dogalgaz_boru_hasari)
+median_icme_suyu_boru_hasari= median(deprem_veri_seti$icme_suyu_boru_hasari)
+median_atik_su_boru_hasari = median(deprem_veri_seti$atik_su_boru_hasari)
+median_gecici_barinma = median(deprem_veri_seti$gecici_barinma)
+
+# Sütunların medyan (median) analizinde elde edilen değerleri veri çerçevesi kullanarak
+# tablo biçiminde gösterdik.
+
+dataframe_median. <- data.frame (
+  cok_agir_hasarli_bina_sayisi  = c(median_cok_agir_hasarli_bina_sayisi),
+  agir_hasarli_bina_sayisi = c(median_agir_hasarli_bina_sayisi),
+  orta_hasarli_bina_sayisi = c(median_orta_hasarli_bina_sayisi),
+  hafif_hasarli_bina_sayisi = c(median_hafif_hasarli_bina_sayisi),
+  can_kaybi_sayisi = c(median_can_kaybi_sayisi),
+  agir_yarali_sayisi = c(median_agir_yarali_sayisi),
+  hastanede_tedavi_sayisi = c(median_hastanede_tedavi_sayisi),
+  hafif_yarali_sayisi = c(median_hafif_yarali_sayisi),
+  dogalgaz_boru_hasari = c(median_dogalgaz_boru_hasari),
+  icme_suyu_boru_hasari = c(median_icme_suyu_boru_hasari),
+  atik_su_boru_hasari = c(median_atik_su_boru_hasari),
+  gecici_barinma = c(median_gecici_barinma )
+)
+
+# Tablo şeklinde gösterdik.   
+print(dataframe_median.) 
+# Sütunların medyan değerlerinin analizi çıktısı
+
+# cok_agir_hasarli_bina_sayisi agir_hasarli_bina_sayisi orta_hasarli_bina_sayisi
+#                           5                        20                     100.5
+# hafif_hasarli_bina_sayisi can_kaybi_sayisi agir_yarali_sayisi hastanede_tedavi_sayisi
+#                       251.5               3                  1                       11
+# hafif_yarali_sayisi dogalgaz_boru_hasari icme_suyu_boru_hasari atik_su_boru_hasari  gecici_barinma
+#                   26                   0                     0                   1          413.5
+
+Veri setindeki değişkenleri grafik işlemleri için tanımladık.
+cok_agir_hasarli_bina_sayisi<-deprem_veri_seti$cok_agir_hasarli_bina_sayisi
+agir_hasarli_bina_sayisi<-deprem_veri_seti$agir_hasarli_bina_sayisi 
+orta_hasarli_bina_sayisi<-deprem_veri_seti$orta_hasarli_bina_sayisi
+hafif_hasarli_bina_sayisi<-deprem_veri_seti$hafif_hasarli_bina_sayisi 
+can_kaybi_sayisi<-deprem_veri_seti$can_kaybi_sayisi  
+agir_yarali_sayisi<-deprem_veri_seti$agir_yarali_sayisi   
+hastanede_tedavi_sayisi<-deprem_veri_seti$hastanede_tedavi_sayisi
+hafif_yarali_sayisi<-deprem_veri_seti$hafif_yarali_sayisi 
+dogalgaz_boru_hasari<-deprem_veri_seti$dogalgaz_boru_hasari
+icme_suyu_boru_hasari<-deprem_veri_seti$icme_suyu_boru_hasari
+atik_su_boru_hasari<-deprem_veri_seti$atik_su_boru_hasari
+gecici_barinma <-deprem_veri_seti$gecici_barinma 
+
+
+# cok_agir_hasarli_bina_sayisi sütununu ortalama, mod ve medyan değerlerini histogram grafiği
+# üzerinde gösterme ve grafik haakkında fikir sahibi olma
+
+
+hist(cok_agir_hasarli_bina_sayisi, 
+     col = "peachpuff", 
+     border = "black", 
+     prob = TRUE, 
+     xlim = c(0,200),
+     ylim = c(0,200),
+     xlab = "Çok Ağırlı Hasarlı Bina Sayısı",
+     main = "Çok Ağır Hasarlı Bina Sayısı Grafiği")
+lines(cok_agir_hasarli_bina_sayisi, 
+      lwd = 2, 
+      col = "chocolate3")
+# Density: Verilerin sürekli bir aralık veya zaman periyodu boyunca dağılımını görselleştirir.
+# Grafiğe cok_agir_hasarli_bina_sayisi sütununu ortalama, mod ve medyan değerlerini ekleme
+abline(v = mean_cok_agir_hasarli_bina_sayisi,
+       col = "royalblue",
+       lwd = 2)
+
+abline(v =  mode_cok_agir_hasarli_bina_sayisi,
+       col = "purple",
+       lwd = 2)
+abline(v = median_cok_agir_hasarli_bina_sayisi,
+       col = "green",
+       lwd = 2)
+
+
+legend(x = "topright", # location of legend within plot area
+       c("Çok Ağırlı Hasarlı Bina Sayısı", "Ortalama", "Mod","Medyan"),
+       col = c("chocolate3", "royalblue", "purple","green"),
+       lwd = c(2, 2, 2,2))
+
+
+# agir_hasarli_bina_sayisi sütununu ortalama, mod ve medyan değerlerini histogram grafiği
+# üzerinde gösterme ve grafik haakkında fikir sahibi olma
+
+
+hist(agir_hasarli_bina_sayisi, 
+     col = "peachpuff", 
+     border = "black", 
+     prob = TRUE, 
+     xlim = c(0,200),
+     ylim = c(0,500),
+     xlab = "Ağır Hasarlı Bina Sayısı",
+     main = " Ağır Hasarlı Bina Sayısı Grafiği")
+lines(agir_hasarli_bina_sayisi, 
+      lwd = 2, 
+      col = "chocolate3")
+# Density: Verilerin sürekli bir aralık veya zaman periyodu boyunca dağılımını görselleştirir.
+# Grafiğe cok_agir_hasarli_bina_sayisi sütununu ortalama, mod ve medyan değerlerini ekleme
+abline(v = mean_agir_hasarli_bina_sayisi,
+       col = "royalblue",
+       lwd = 2)
+
+abline(v =  mode_agir_hasarli_bina_sayisi,
+       col = "purple",
+       lwd = 2)
+abline(v = median_agir_hasarli_bina_sayisi,
+       col = "green",
+       lwd = 2)
+
+
+legend(x = "topright", # location of legend within plot area
+       c("Ağır Hasarlı Bina Sayısı", "Ortalama", "Mod","Medyan"),
+       col = c("chocolate3", "royalblue", "purple","green"),
+       lwd = c(2, 2, 2,2))
+
+
+# orta_hasarli_bina_sayisi sütununu ortalama, mod ve medyan değerlerini histogram grafiği
+# üzerinde gösterme ve grafik haakkında fikir sahibi olma
+
+
+hist(orta_hasarli_bina_sayisi, 
+     col = "peachpuff", 
+     border = "black", 
+     prob = TRUE, 
+     xlim = c(0,500),
+     ylim = c(0,1000),
+     xlab = "Orta Hasarlı Bina Sayısı",
+     main = " Orta Hasarlı Bina Sayısı Grafiği")
+lines(orta_hasarli_bina_sayisi, 
+      lwd = 2, 
+      col = "chocolate3")
+# Density: Verilerin sürekli bir aralık veya zaman periyodu boyunca dağılımını görselleştirir.
+# Grafiğe orta_hasarli_bina_sayisi sütununu ortalama, mod ve medyan değerlerini ekleme
+abline(v = mean_orta_hasarli_bina_sayisi,
+       col = "royalblue",
+       lwd = 2)
+
+abline(v =  mode_orta_hasarli_bina_sayisi,
+       col = "purple",
+       lwd = 2)
+abline(v = median_orta_hasarli_bina_sayisi,
+       col = "green",
+       lwd = 2)
+
+
+legend(x = "topright", # location of legend within plot area
+       c("Orta Hasarlı Bina Sayısı", "Ortalama", "Mod","Medyan"),
+       col = c("chocolate3", "royalblue", "purple","green"),
+       lwd = c(2, 2, 2,2))
+
+
+# hafif_hasarli_bina_sayisi sütununu ortalama, mod ve medyan değerlerini histogram grafiği
+# üzerinde gösterme ve grafik haakkında fikir sahibi olma
+
+
+hist(hafif_hasarli_bina_sayisi, 
+     col = "peachpuff", 
+     border = "black", 
+     prob = TRUE, 
+     xlim = c(0,500),
+     ylim = c(0,2500),
+     xlab = "Hafif Hasarlı Bina Sayısı",
+     main = " Hafif Hasarlı Bina Sayısı Grafiği")
+lines(hafif_hasarli_bina_sayisi, 
+      lwd = 2, 
+      col = "chocolate3")
+# Density: Verilerin sürekli bir aralık veya zaman periyodu boyunca dağılımını görselleştirir.
+# Grafiğe hafif_hasarli_bina_sayisi sütununu ortalama, mod ve medyan değerlerini ekleme
+abline(v = mean_hafif_hasarli_bina_sayisi,
+       col = "royalblue",
+       lwd = 2)
+
+abline(v =  mode_hafif_hasarli_bina_sayisi,
+       col = "purple",
+       lwd = 2)
+abline(v = median_hafif_hasarli_bina_sayisi,
+       col = "green",
+       lwd = 2)
+
+
+legend(x = "topright", # location of legend within plot area
+       c("Hafif Hasarlı Bina Sayısı", "Ortalama", "Mod","Medyan"),
+       col = c("chocolate3", "royalblue", "purple","green"),
+       lwd = c(2, 2, 2,2))
+
+
+# can_kaybi_sayisi sütununu ortalama, mod ve medyan değerlerini histogram grafiği
+# üzerinde gösterme ve grafik haakkında fikir sahibi olma
+
+hist(can_kaybi_sayisi, 
+     col = "peachpuff", 
+     border = "black", 
+     prob = TRUE, 
+     xlim = c(0,20),
+     ylim = c(0,2500),
+     xlab = "Can Kaybı Sayısı",
+     main = " Can Kaybı Sayısı Grafiği")
+lines(can_kaybi_sayisi, 
+      lwd = 2, 
+      col = "chocolate3")
+# Density: Verilerin sürekli bir aralık veya zaman periyodu boyunca dağılımını görselleştirir.
+# Grafiğe can_kaybi_sayisi sütununu ortalama, mod ve medyan değerlerini ekleme
+abline(v = mean_can_kaybi_sayisi,
+       col = "royalblue",
+       lwd = 2)
+
+abline(v =  mode_can_kaybi_sayisi,
+       col = "purple",
+       lwd = 2)
+abline(v = median_can_kaybi_sayisi,
+       col = "green",
+       lwd = 2)
+
+
+legend(x = "topright", # location of legend within plot area
+       c("Can Kaybı Sayısı", "Ortalama", "Mod","Medyan"),
+       col = c("chocolate3", "royalblue", "purple","green"),
+       lwd = c(2, 2, 2,2))
+
+
+# agir_yarali_sayisi sütununu ortalama, mod ve medyan değerlerini histogram grafiği
+# üzerinde gösterme ve grafik haakkında fikir sahibi olma
+
+hist(agir_yarali_sayisi, 
+     col = "peachpuff", 
+     border = "black", 
+     prob = TRUE, 
+     xlim = c(0,10),
+     ylim = c(0,2500),
+     xlab = "Ağır Yaralı Sayısı",
+     main = " Ağır Yaralı Sayısı Grafiği")
+lines(agir_yarali_sayisi, 
+      lwd = 2, 
+      col = "chocolate3")
+# Density: Verilerin sürekli bir aralık veya zaman periyodu boyunca dağılımını görselleştirir.
+# Grafiğe agir_yarali_sayisi sütununu ortalama, mod ve medyan değerlerini ekleme
+abline(v = mean_agir_yarali_sayisi,
+       col = "royalblue",
+       lwd = 2)
+
+abline(v =  mode_agir_yarali_sayisi,
+       col = "purple",
+       lwd = 2)
+abline(v = median_agir_yarali_sayisi,
+       col = "green",
+       lwd = 2)
+
+
+legend(x = "topright", # location of legend within plot area
+       c("Ağır Yaralı Sayısı", "Ortalama", "Mod","Medyan"),
+       col = c("chocolate3", "royalblue", "purple","green"),
+       lwd = c(2, 2, 2,2))
+
+# hastanede_tedavi_sayisi sütununu ortalama, mod ve medyan değerlerini histogram grafiği
+# üzerinde gösterme ve grafik haakkında fikir sahibi olma
+
+hist(hastanede_tedavi_sayisi, 
+     col = "peachpuff", 
+     border = "black", 
+     prob = TRUE, 
+     xlim = c(0,200),
+     ylim = c(0,2500),
+     xlab = "Hastanede Tedavi Sayısı",
+     main = " Hastanede Tedavi Sayısı Grafiği")
+lines(hastanede_tedavi_sayisi, 
+      lwd = 2, 
+      col = "chocolate3")
+# Density: Verilerin sürekli bir aralık veya zaman periyodu boyunca dağılımını görselleştirir.
+# Grafiğe hastanede_tedavi_sayisi sütununu ortalama, mod ve medyan değerlerini ekleme
+abline(v = mean_hastanede_tedavi_sayisi,
+       col = "royalblue",
+       lwd = 2)
+
+abline(v =  mode_hastanede_tedavi_sayisi,
+       col = "purple",
+       lwd = 2)
+abline(v = median_hastanede_tedavi_sayisi,
+       col = "green",
+       lwd = 2)
+
+
+legend(x = "topright", # location of legend within plot area
+       c("Hastanede Tedavi Sayısı", "Ortalama", "Mod","Medyan"),
+       col = c("chocolate3", "royalblue", "purple","green"),
+       lwd = c(2, 2, 2,2))
+
+# hafif_yarali_sayisi sütununu ortalama, mod ve medyan değerlerini histogram grafiği
+# üzerinde gösterme ve grafik haakkında fikir sahibi olma
+
+hist(hafif_yarali_sayisi, 
+     col = "peachpuff", 
+     border = "black", 
+     prob = TRUE, 
+     xlim = c(0,200),
+     ylim = c(0,2500),
+     xlab = "Hafif Yaralı Sayısı",
+     main = " Hafif Yaralı Sayısı Grafiği")
+lines(hafif_yarali_sayisi, 
+      lwd = 2, 
+      col = "chocolate3")
+# Density: Verilerin sürekli bir aralık veya zaman periyodu boyunca dağılımını görselleştirir.
+# Grafiğe hafif_yarali_sayisi sütununu ortalama, mod ve medyan değerlerini ekleme
+abline(v = mean_hafif_yarali_sayisi,
+       col = "royalblue",
+       lwd = 2)
+
+abline(v =  mode_hafif_yarali_sayisi,
+       col = "purple",
+       lwd = 2)
+abline(v = median_hafif_yarali_sayisi,
+       col = "green",
+       lwd = 2)
+
+
+legend(x = "topright", # location of legend within plot area
+       c("Hafif Yaralı Sayısı", "Ortalama", "Mod","Medyan"),
+       col = c("chocolate3", "royalblue", "purple","green"),
+       lwd = c(2, 2, 2,2))
+
+
+# dogalgaz_boru_hasari sütununu ortalama, mod ve medyan değerlerini histogram grafiği
+# üzerinde gösterme ve grafik haakkında fikir sahibi olma
+
+hist(dogalgaz_boru_hasari, 
+     col = "peachpuff", 
+     border = "black", 
+     prob = TRUE, 
+     xlim = c(0,40),
+     ylim = c(0,2500),
+     xlab = "Doğalgaz Boru Hasarı Sayısı",
+     main = " Doğalgaz Boru Hasarı Sayısı Grafiği")
+lines(dogalgaz_boru_hasari, 
+      lwd = 2, 
+      col = "chocolate3")
+# Density: Verilerin sürekli bir aralık veya zaman periyodu boyunca dağılımını görselleştirir.
+# Grafiğe dogalgaz_boru_hasari sütununu ortalama, mod ve medyan değerlerini ekleme
+abline(v = mean_dogalgaz_boru_hasari,
+       col = "royalblue",
+       lwd = 2)
+
+abline(v =  mode_dogalgaz_boru_hasari,
+       col = "purple",
+       lwd = 2)
+abline(v = median_dogalgaz_boru_hasari,
+       col = "green",
+       lwd = 2)
+
+
+legend(x = "topright", # location of legend within plot area
+       c("Doğalgaz Boru Hasarı Sayısı", "Ortalama", "Mod","Medyan"),
+       col = c("chocolate3", "royalblue", "purple","green"),
+       lwd = c(2, 2, 2,2))
+
+
+# icme_suyu_boru_hasari sütununu ortalama, mod ve medyan değerlerini histogram grafiği
+# üzerinde gösterme ve grafik haakkında fikir sahibi olma
+
+hist(icme_suyu_boru_hasari, 
+     col = "peachpuff", 
+     border = "black", 
+     prob = TRUE, 
+     xlim = c(0,30),
+     ylim = c(0,2500),
+     xlab = "İçme Suyu Boru Hasarı Sayısı",
+     main = " İçme Suyu Boru Hasarı Sayısı Grafiği")
+lines(icme_suyu_boru_hasari, 
+      lwd = 2, 
+      col = "chocolate3")
+# Density: Verilerin sürekli bir aralık veya zaman periyodu boyunca dağılımını görselleştirir.
+# Grafiğe icme_suyu_boru_hasari sütununu ortalama, mod ve medyan değerlerini ekleme
+abline(v = mean_icme_suyu_boru_hasari,
+       col = "royalblue",
+       lwd = 2)
+
+abline(v =  mode_icme_suyu_boru_hasari,
+       col = "purple",
+       lwd = 2)
+abline(v = median_icme_suyu_boru_hasari,
+       col = "green",
+       lwd = 2)
+
+
+legend(x = "topright", # location of legend within plot area
+       c("İçme Suyu Boru Hasarı Sayısı", "Ortalama", "Mod","Medyan"),
+       col = c("chocolate3", "royalblue", "purple","green"),
+       lwd = c(2, 2, 2,2))
+
+# gecici_barinma sütununu ortalama, mod ve medyan değerlerini histogram grafiği
+# üzerinde gösterme ve grafik haakkında fikir sahibi olma
+
+hist(gecici_barinma, 
+     col = "peachpuff", 
+     border = "black", 
+     prob = TRUE, 
+     xlim = c(0,1200),
+     ylim = c(0,2500),
+     xlab = "Geçici Barınma Yeri Sayısı",
+     main = " Geçici Barınma Yeri Sayısı Grafiği")
+lines(icme_suyu_boru_hasari, 
+      lwd = 2, 
+      col = "chocolate3")
+# Density: Verilerin sürekli bir aralık veya zaman periyodu boyunca dağılımını görselleştirir.
+# Grafiğe icme_suyu_boru_hasari sütununu ortalama, mod ve medyan değerlerini ekleme
+abline(v = mean_gecici_barinma,
+       col = "royalblue",
+       lwd = 2)
+
+abline(v =  mode_gecici_barinma,
+       col = "purple",
+       lwd = 2)
+abline(v = median_gecici_barinma,
+       col = "green",
+       lwd = 2)
+
+
+legend(x = "topright", # location of legend within plot area
+       c("Geçici Barınma Yeri Sayısı", "Ortalama", "Mod","Medyan"),
+       col = c("chocolate3", "royalblue", "purple","green"),
+       lwd = c(2, 2, 2,2))
+
+
+
+
+
+ 
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+/new page
+# /bibliography/: Kaynakça Klasörü
+# /bibliography/biblio.bib: Kaynakça Dosyası
+
+
+
+
+```{r cars}
